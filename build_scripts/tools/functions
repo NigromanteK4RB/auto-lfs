@@ -7,22 +7,28 @@ function cleanup(){
     rm -rf "${tool_builddir}"
 }
 
+function extract(){
+    mkdir -pv "${2}"
+    tar --strip-components=1 -C "${2}" -xf "${1}"
+}
+
+
 if [ ! -d "${tool_builddir}" ]
 then
-    mkdir -pv "${tool_builddir}"
     if [ -f "${tool_sourcefile}" ]
     then
-        tar \
-            --strip-components=1 \
-            -C "${tool_builddir}" \
-            -xf "${tool_sourcefile}"
+        extract "${tool_sourcefile}" "${tool_builddir}"
     else
         printf "Error: '${tool_sourcefile}' file not found\n"
         cleanup
         exit 1
     fi
 else
-    exit 0
+    if [ "${exit_on_builddir_exists}" == "true" ]
+    then
+        exit 0
+    fi
 fi
 
 cd "${tool_builddir}"
+

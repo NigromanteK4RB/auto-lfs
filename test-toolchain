@@ -1,0 +1,10 @@
+#!/bin/sh
+
+SCRIPT_DIR=$(dirname "`realpath ${0}`")
+
+source "${SCRIPT_DIR}/custom_vars"
+
+echo 'int main(){}' > dummy.c
+$LFS_TGT-gcc dummy.c
+readelf -l a.out | grep ": /${CUSTOM_PREFIX}"
+rm dummy.c a.out

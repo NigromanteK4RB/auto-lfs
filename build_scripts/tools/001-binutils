@@ -2,6 +2,7 @@
 
 scripts_dir="${BUILD_SCRIPTS}/tools"
 tool_name=binutils
+exit_on_builddir_exists=true
 
 source "${scripts_dir}/functions"
 

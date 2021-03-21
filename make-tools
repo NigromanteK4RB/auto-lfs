@@ -8,8 +8,8 @@ BUILD_SCRIPTS="${SCRIPT_DIR}"/build_scripts
 BUILD_DIR="${SCRIPT_DIR}"/build
 
 ARCH=$(uname -m)
-CUSTOM_PREFIX=tools
-CUSTOM_SYSNAME=lfs
+
+source "${SCRIPT_DIR}/custom_vars"
 
 if [ ! -d  "${LFS}" ]
 then
@@ -25,14 +25,7 @@ fi
 sudo rm "/${CUSTOM_PREFIX}"
 sudo ln -sv "${LFS}/${CUSTOM_PREFIX}" /
 
-set +h
-umask 022
-LC_ALL=POSIX
-LFS_TGT="`uname -m`-${CUSTOM_SYSNAME}-linux-gnu"
-PATH=/${CUSTOM_PREFIX}/bin:/bin:/usr/bin
-CPUS=$(echo `lscpu | grep 'CPU(s):'` | cut -d' ' -f2)
-MAKEFLAGS="-j${CPUS}"
-export LFS LC_ALL LFS_TGT PATH MAKEFLAGS SOURCES_DIR BUILD_DIR ARCH BUILD_SCRIPTS
+export LFS LC_ALL LFS_TGT PATH MAKEFLAGS SOURCES_DIR BUILD_DIR ARCH BUILD_SCRIPTS CUSTOM_PREFIX
 
 for script in "${BUILD_SCRIPTS}/tools"/???-*
 do
@@ -47,4 +40,7 @@ do
         ;;
     esac
 done
+
+
+
 

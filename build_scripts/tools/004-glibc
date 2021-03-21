@@ -1,0 +1,24 @@
+#!/bin/sh
+
+scripts_dir="${BUILD_SCRIPTS}/tools"
+tool_name=glibc
+exit_on_builddir_exists=true
+
+source "${scripts_dir}/functions"
+
+{
+    mkdir -v build &&
+    cd build &&
+    ../configure \
+        --prefix="/${CUSTOM_PREFIX}" \
+        --host=$LFS_TGT \
+        --build=$(../scripts/config.guess) \
+        --enable-kernel=3.2 \
+        --with-headers="/${CUSTOM_PREFIX}/include" &&
+    make &&
+    make install
+} || {
+    cleanup
+    exit 2
+}
+

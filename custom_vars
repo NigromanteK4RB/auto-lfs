@@ -1,0 +1,9 @@
+set +h
+umask 022
+CUSTOM_PREFIX=tools
+CUSTOM_SYSNAME=lfs
+LC_ALL=POSIX
+LFS_TGT="`uname -m`-${CUSTOM_SYSNAME}-linux-gnu"
+PATH=/${CUSTOM_PREFIX}/bin:/bin:/usr/bin:/dummy/bin
+CPUS=$(echo `lscpu | grep 'CPU(s):'` | cut -d' ' -f2)
+MAKEFLAGS="-j${CPUS} -s --no-print-directory"

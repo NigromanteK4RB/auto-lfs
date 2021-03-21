@@ -14,12 +14,12 @@ source "${scripts_dir}/functions"
         for file in gcc/config/{linux,i386/linux{,64}}.h
         do
             cp -uv $file{,.orig}
-            sed -e "s@/lib\(64\)\?\(32\)\?/ld@/${CUSTOM_PREFIX}&@g" \
-                -e "s@/usr@/${CUSTOM_PREFIX}@g" $file.orig > $file
+            sed -e "s@/lib\(64\)\?\(32\)\?/ld@/${TOOLS}&@g" \
+                -e "s@/${CUSTOM_PREFIX}@/${TOOLS}@g" $file.orig > $file
             echo "
 #undef STANDARD_STARTFILE_PREFIX_1
 #undef STANDARD_STARTFILE_PREFIX_2
-#define STANDARD_STARTFILE_PREFIX_1 \"/${CUSTOM_PREFIX}/lib/\"
+#define STANDARD_STARTFILE_PREFIX_1 \"/${TOOLS}/lib/\"
 #define STANDARD_STARTFILE_PREFIX_2 \"\"" >> $file
             touch $file.orig
         done
@@ -34,13 +34,13 @@ source "${scripts_dir}/functions"
     cd build &&
     ../configure                                       \
         --target=$LFS_TGT                              \
-        --prefix="/${CUSTOM_PREFIX}"                   \
+        --prefix="/${TOOLS}"                   \
         --with-glibc-version=2.11                      \
         --with-sysroot=$LFS                            \
         --with-newlib                                  \
         --without-headers                              \
-        --with-local-prefix="/${CUSTOM_PREFIX}"        \
-        --with-native-system-header-dir="/${CUSTOM_PREFIX}/include" \
+        --with-local-prefix="/${TOOLS}"        \
+        --with-native-system-header-dir="/${TOOLS}/include" \
         --disable-nls                                  \
         --disable-shared                               \
         --disable-multilib                             \
@@ -59,6 +59,7 @@ source "${scripts_dir}/functions"
     cleanup
     exit 2
 }
+
 
 
 

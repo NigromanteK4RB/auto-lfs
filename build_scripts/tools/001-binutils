@@ -7,12 +7,12 @@ exit_on_builddir_exists=true
 source "${scripts_dir}/functions"
 
 {
-    mkdir -v build &&
-    cd build &&
+    mkdir -v build-step1 &&
+    cd build-step1 &&
     ../configure \
-        --prefix="/${CUSTOM_PREFIX}" \
+        --prefix="/${TOOLS}" \
         --with-sysroot=$LFS \
-        --with-lib-path="/${CUSTOM_PREFIX}/lib" \
+        --with-lib-path="/${TOOLS}/lib" \
         --target=$LFS_TGT \
         --disable-nls \
         --disable-werror &&
@@ -20,7 +20,7 @@ source "${scripts_dir}/functions"
     {
         case "${ARCH}" in
             x86_64)
-                mkdir -v "/${CUSTOM_PREFIX}/lib" && ln -sv lib "/${CUSTOM_PREFIX}/lib64"
+                mkdir -v "/${TOOLS}/lib" && ln -sv lib "/${TOOLS}/lib64"
             ;;
         esac
         make install

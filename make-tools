@@ -16,16 +16,16 @@ then
     LFS="${SCRIPT_DIR}"/system
 fi
 
-if [ ! -d "${LFS}/${CUSTOM_PREFIX}" ]
+if [ ! -d "${LFS}/${TOOLS}" ]
 then
-    mkdir -pv "${LFS}/${CUSTOM_PREFIX}"
-    chown -v ${USER} "${LFS}/${CUSTOM_PREFIX}"
+    mkdir -pv "${LFS}/${TOOLS}"
+    chown -v ${USER} "${LFS}/${TOOLS}"
 fi
 
-sudo rm "/${CUSTOM_PREFIX}"
-sudo ln -sv "${LFS}/${CUSTOM_PREFIX}" /
+sudo rm "/${TOOLS}"
+sudo ln -sv "${LFS}/${TOOLS}" /
 
-export LFS LC_ALL LFS_TGT PATH MAKEFLAGS SOURCES_DIR BUILD_DIR ARCH BUILD_SCRIPTS CUSTOM_PREFIX
+export LFS LC_ALL LFS_TGT PATH MAKEFLAGS SOURCES_DIR BUILD_DIR ARCH BUILD_SCRIPTS CUSTOM_PREFIX TOOLS
 
 for script in "${BUILD_SCRIPTS}/tools"/???-*
 do
@@ -40,7 +40,3 @@ do
         ;;
     esac
 done
-
-
-
-

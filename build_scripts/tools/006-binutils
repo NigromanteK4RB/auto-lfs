@@ -1,0 +1,35 @@
+#!/bin/sh
+
+scripts_dir="${BUILD_SCRIPTS}/tools"
+tool_name=binutils
+exit_on_builddir_exists=false
+
+source "${scripts_dir}/functions"
+
+{
+    mkdir build-step2 &&
+    cd build-step2 &&
+    CC=$LFS_TGT-gcc \
+    AR=$LFS_TGT-ar \
+    RANLIB=$LFS_TGT-ranlib \
+    ../configure \
+        --prefix="/${TOOLS}" \
+        --disable-nls \
+        --disable-werror \
+        --with-lib-path="/${TOOLS}/lib" \
+        --with-sysroot &&
+    make &&
+    {
+        make install &&
+        make -C ld clean &&
+        make -C ld LIB_PATH="/${CUSTOM_PREFIX}/lib:/lib" &&
+        cp -v ld/ld-new "/${TOOLS}/bin"
+    }
+} || {
+    cd ..
+    rm -rvf build-step2
+    exit 2
+}
+
+
+

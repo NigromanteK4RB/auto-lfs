@@ -1,0 +1,31 @@
+#!/bin/sh
+
+scripts_dir="${BUILD_SCRIPTS}/tools"
+tool_name=gcc
+exit_on_builddir_exists=false
+
+source "${scripts_dir}/functions"
+
+{
+    if [ -d build-libstdc++ ]
+    then
+        exit 0
+    fi
+    mkdir -v build-libstdc++ &&
+    cd build-libstdc++ &&
+    ../libstdc++-v3/configure \
+        --host=$LFS_TGT \
+        --prefix="/${TOOLS}" \
+        --disable-multilib \
+        --disable-nls \
+        --disable-libstdcxx-threads \
+        --disable-libstdcxx-pch \
+        --with-gxx-include-dir="/${TOOLS}/$LFS_TGT/include/c++/9.2.0" \
+        &&
+    make &&
+    make install
+} || {
+    cd ..
+    rm -rvf build-libstdc++
+    exit 2
+}

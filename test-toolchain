@@ -6,5 +6,5 @@ source "${SCRIPT_DIR}/custom_vars"
 
 echo 'int main(){}' > dummy.c
 $LFS_TGT-gcc dummy.c
-readelf -l a.out | grep ": /${CUSTOM_PREFIX}"
+readelf -l a.out | grep ": /${TOOLS}"
 rm dummy.c a.out

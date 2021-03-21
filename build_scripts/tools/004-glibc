@@ -10,15 +10,14 @@ source "${scripts_dir}/functions"
     mkdir -v build &&
     cd build &&
     ../configure \
-        --prefix="/${CUSTOM_PREFIX}" \
+        --prefix="/${TOOLS}" \
         --host=$LFS_TGT \
         --build=$(../scripts/config.guess) \
         --enable-kernel=3.2 \
-        --with-headers="/${CUSTOM_PREFIX}/include" &&
+        --with-headers="/${TOOLS}/include" &&
     make &&
     make install
 } || {
     cleanup
     exit 2
 }
-

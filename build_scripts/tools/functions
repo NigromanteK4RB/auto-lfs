@@ -1,0 +1,28 @@
+#!/bin/sh
+
+tool_builddir="${BUILD_DIR}/${tool_name}.tool"
+tool_sourcefile=`ls "${SOURCES_DIR}/${tool_name}"*tar.*z`
+
+function cleanup(){
+    rm -rf "${tool_builddir}"
+}
+
+if [ ! -d "${tool_builddir}" ]
+then
+    mkdir -pv "${tool_builddir}"
+    if [ -f "${tool_sourcefile}" ]
+    then
+        tar \
+            --strip-components=1 \
+            -C "${tool_builddir}" \
+            -xf "${tool_sourcefile}"
+    else
+        printf "Error: '${tool_sourcefile}' file not found\n"
+        cleanup
+        exit 1
+    fi
+else
+    exit 0
+fi
+
+cd "${tool_builddir}"

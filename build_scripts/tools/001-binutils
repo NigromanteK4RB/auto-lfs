@@ -1,0 +1,31 @@
+#!/bin/sh
+
+scripts_dir="${BUILD_SCRIPTS}/tools"
+tool_name=binutils
+
+source "${scripts_dir}/functions"
+
+{
+    mkdir -v build &&
+    cd build &&
+    ../configure \
+        --prefix="/${CUSTOM_PREFIX}" \
+        --with-sysroot=$LFS \
+        --with-lib-path="/${CUSTOM_PREFIX}/lib" \
+        --target=$LFS_TGT \
+        --disable-nls \
+        --disable-werror &&
+    make &&
+    {
+        case "${ARCH}" in
+            x86_64)
+                mkdir -v "/${CUSTOM_PREFIX}/lib" && ln -sv lib "/${CUSTOM_PREFIX}/lib64"
+            ;;
+        esac
+        make install
+    }
+} || {
+    cleanup
+    exit 2
+}
+

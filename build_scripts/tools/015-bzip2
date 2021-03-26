@@ -1,0 +1,22 @@
+#!/bin/sh
+
+scripts_dir="${BUILD_SCRIPTS}/${TOOLS_BUILD_SCRIPTS_DIRNAME}"
+tool_name=bzip2
+exit_on_builddir_exists=true
+
+source "${scripts_dir}/functions"
+
+{
+    make -f Makefile-libbz2_so &&
+    make clean &&
+    make &&
+    {
+        make PREFIX="/${TOOLS}" install &&
+        cp -v bzip2-shared "/${TOOLS}/bin/bzip2" &&
+        cp -av libbz2.so* "/${TOOLS}/lib" &&
+        ln -sv libbz2.so.1.0 "/${TOOLS}/lib/libbz2.so"
+    }
+} || {
+    cleanup
+    exit 2
+}

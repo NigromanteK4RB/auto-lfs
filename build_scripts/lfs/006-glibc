@@ -1,0 +1,87 @@
+#!/bin/sh
+
+scripts_dir="${BUILD_SCRIPTS}/${OS_BUILD_SCRIPTS_DIRNAME}"
+tool_name=glibc
+exit_on_builddir_exists=true
+
+source "${scripts_dir}/functions"
+
+{
+    patchsrc `ls "${SOURCES_DIR}"/${tool_name}*.patch` &&
+    case $(uname -m) in
+        i?86)   ln -sfv ld-linux.so.2 /lib/ld-lsb.so.3
+        ;;
+        x86_64) ln -sfv ../lib/ld-linux-x86-64.so.2 /lib64
+                ln -sfv ../lib/ld-linux-x86-64.so.2 /lib64/ld-lsb-x86-64.so.3
+        ;;
+    esac &&
+    mkdir -v build &&
+    cd build &&
+    CC="gcc -ffile-prefix-map=/${TOOLS}=/${CUSTOM_PREFIX}" \
+    ../configure --prefix="/${CUSTOM_PREFIX}" \
+        --disable-werror \
+        --enable-kernel=3.2 \
+        --enable-stack-protector=strong \
+        --with-headers="/${CUSTOM_PREFIX}/include" \
+        libc_cv_slibdir=/lib &&
+    make &&
+    {
+        touch /etc/ld.so.conf &&
+        sed '/test-installation/s@$(PERL)@echo not running@' -i ../Makefile &&
+        make install &&
+        cp -v ../nscd/nscd.conf /etc/nscd.conf
+        mkdir -pv /var/cache/nscd
+        install -v -Dm644 ../nscd/nscd.tmpfiles /usr/lib/tmpfiles.d/nscd.conf
+        install -v -Dm644 ../nscd/nscd.service /lib/systemd/system/nscd.service
+        mkdir -pv /usr/lib/locale
+        localedef -i es_VE -f UTF-8 es_VE.UTF-8
+        cat > /etc/nsswitch.conf << "EOF"
+# Begin /etc/nsswitch.conf
+
+passwd: files
+group: files
+shadow: files
+
+hosts: files dns
+networks: files
+
+protocols: files
+services: files
+ethers: files
+rpc: files
+
+# End /etc/nsswitch.conf
+EOF
+
+        tar -xf `ls "${SOURCES_DIR}"/tzdata*tar*z*`
+        ZONEINFO="/${CUSTOM_PREFIX}/share/zoneinfo"
+        mkdir -pv "${ZONEINFO}"/{posix,right}
+
+        for tz in etcetera southamerica northamerica europe africa antarctica  \
+                  asia australasia backward pacificnew systemv; do
+            zic -L /dev/null   -d "${ZONEINFO}"       ${tz}
+            zic -L /dev/null   -d "${ZONEINFO}"/posix ${tz}
+            zic -L leapseconds -d "${ZONEINFO}"/right ${tz}
+        done
+
+        cp -v zone.tab zone1970.tab iso3166.tab "${ZONEINFO}"
+        zic -d "${ZONEINFO}" -p America/Caracas
+        ln -sfv "${ZONEINFO}"/America/Caracas /etc/localtime
+        unset ZONEINFO
+        cat > /etc/ld.so.conf << "EOF"
+# Begin /etc/ld.so.conf
+/usr/local/lib
+/opt/lib
+
+EOF
+        cat >> /etc/ld.so.conf << "EOF"
+# Add an include directory
+include /etc/ld.so.conf.d/*.conf
+
+EOF
+        mkdir -pv /etc/ld.so.conf.d
+    }
+} || {
+    cleanup
+    exit 2
+}

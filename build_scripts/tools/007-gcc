@@ -1,0 +1,45 @@
+#!/bin/sh
+
+scripts_dir="${BUILD_SCRIPTS}/${TOOLS_BUILD_SCRIPTS_DIRNAME}"
+tool_name=gcc
+exit_on_builddir_exists=false
+
+source "${scripts_dir}/functions"
+
+{
+    if [ -d build-step2 ]
+    then
+        exit 0
+    fi
+    cat gcc/limitx.h gcc/glimits.h gcc/limity.h > \
+        `dirname $($LFS_TGT-gcc -print-libgcc-file-name)`/include-fixed/limits.h \
+        &&
+    sed -e '1161 s|^|//|' \
+        -i libsanitizer/sanitizer_common/sanitizer_platform_limits_posix.cc \
+        &&
+    mkdir -v build-step2 &&
+    cd build-step2 &&
+    CC=$LFS_TGT-gcc \
+    CXX=$LFS_TGT-g++ \
+    AR=$LFS_TGT-ar \
+    RANLIB=$LFS_TGT-ranlib \
+    ../configure \
+        --prefix="/${TOOLS}" \
+        --with-local-prefix="/${TOOLS}" \
+        --with-native-system-header-dir="/${TOOLS}/include" \
+        --enable-languages=c,c++ \
+        --disable-libstdcxx-pch \
+        --disable-multilib \
+        --disable-bootstrap \
+        --disable-libgomp &&
+    make &&
+    {
+        make install &&
+        ln -sv gcc /tools/bin/cc &&
+        "${SCRIPT_DIR}/test-toolchain"
+    }
+} || {
+    cd ..
+    rm -rvf build-step2
+    exit 2
+}

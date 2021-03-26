@@ -1,0 +1,28 @@
+#!/bin/sh
+
+scripts_dir="${BUILD_SCRIPTS}/${OS_BUILD_SCRIPTS_DIRNAME}"
+specs_file=`dirname $(gcc --print-libgcc-file-name)`/specs
+
+if [ -f "${specs_file}" ]
+then
+    mv -v "/${TOOLS}"/bin/{ld,ld-old}
+    mv -v "/${TOOLS}"/$(uname -m)-pc-linux-gnu/bin/{ld,ld-old}
+    mv -v "/${TOOLS}"/bin/{ld-new,ld}
+    ln -sv "/${TOOLS}"/bin/ld "/${TOOLS}"/$(uname -m)-pc-linux-gnu/bin/ld
+    gcc -dumpspecs | sed -e "s@\"/${TOOLS}\"@@g" \
+        -e "/\*startfile_prefix_spec:/{n;s@.*@/${CUSTOM_PREFIX}/lib/ @}" \
+        -e "/\*cpp:/{n;s@\$@ -isystem /${CUSTOM_PREFIX}/include@}" > \
+        "${specs_file}"
+fi
+
+echo 'int main(){}' > dummy.c
+cc dummy.c -v -Wl,--verbose &> dummy.log
+readelf -l a.out | grep ': /lib'
+
+grep -o "/${CUSTOM_PREFIX}/lib.*/crt[1in].*succeeded" dummy.log
+grep -B1 "^ /${CUSTOM_PREFIX}/include" dummy.log
+grep "SEARCH.*/${CUSTOM_PREFIX}/lib" dummy.log |sed 's|; |\n|g'
+grep "/lib.*/libc.so.6 " dummy.log
+grep found dummy.log
+
+rm -v dummy.c a.out dummy.log

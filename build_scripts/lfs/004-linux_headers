@@ -1,0 +1,19 @@
+#!/bin/sh
+
+scripts_dir="${BUILD_SCRIPTS}/${OS_BUILD_SCRIPTS_DIRNAME}"
+tool_name=linux
+exit_on_builddir_exists=true
+
+source "${scripts_dir}/functions"
+
+{
+    make mrproper &&
+    make headers &&
+    cp -rv usr/include/* "/${TOOLS}/include" &&
+    find usr/include -name '.*' -delete &&
+    rm usr/include/Makefile &&
+    cp -rv usr/include/* "/${CUSTOM_PREFIX}/include"
+} || {
+    cleanup
+    exit 2
+}

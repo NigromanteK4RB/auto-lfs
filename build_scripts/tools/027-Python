@@ -1,20 +1,16 @@
 #!/bin/sh
 
 scripts_dir="${BUILD_SCRIPTS}/${TOOLS_BUILD_SCRIPTS_DIRNAME}"
-tool_name=glibc
+tool_name=Python
 exit_on_builddir_exists=true
 
 source "${scripts_dir}/functions"
 
 {
+    sed -i '/def add_multiarch_paths/a \        return' setup.py &&
     mkdir -v build &&
     cd build &&
-    ../configure \
-        --prefix="/${TOOLS}" \
-        --host=$LFS_TGT \
-        --build=$(../scripts/config.guess) \
-        --enable-kernel=3.2 \
-        --with-headers="/${TOOLS}/include" &&
+    ../configure --prefix="/${TOOLS}" --without-ensurepip &&
     make &&
     make install
 } || {

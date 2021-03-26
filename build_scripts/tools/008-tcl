@@ -1,0 +1,23 @@
+#!/bin/sh
+
+scripts_dir="${BUILD_SCRIPTS}/${TOOLS_BUILD_SCRIPTS_DIRNAME}"
+tool_name=tcl
+exit_on_builddir_exists=true
+
+source "${scripts_dir}/functions"
+
+{
+    mkdir -v build &&
+    cd build &&
+    ../unix/configure --prefix="/${TOOLS}" &&
+    make &&
+    {
+        make install &&
+        chmod -v u+w "/${TOOLS}/lib/libtcl8.6.so" &&
+        make install-private-headers &&
+        ln -sv tclsh8.6 "/${TOOLS}/bin/tclsh"
+    }
+} || {
+    cleanup
+    exit 2
+}

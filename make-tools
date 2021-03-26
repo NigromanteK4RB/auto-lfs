@@ -1,20 +1,15 @@
 #!/bin/sh
 
 
-SCRIPT_DIR=$(dirname "`realpath ${0}`")
-
-SOURCES_DIR="${SCRIPT_DIR}"/sources
-BUILD_SCRIPTS="${SCRIPT_DIR}"/build_scripts
-BUILD_DIR="${SCRIPT_DIR}"/build
-
-ARCH=$(uname -m)
+export SCRIPT_DIR=$(dirname "`realpath ${0}`")
+export SOURCES_DIR="${SCRIPT_DIR}"/sources
+export BUILD_SCRIPTS="${SCRIPT_DIR}"/build_scripts
+export BUILD_DIR="${SCRIPT_DIR}"/build
+export ARCH=$(uname -m)
 
 source "${SCRIPT_DIR}/custom_vars"
 
-if [ ! -d  "${LFS}" ]
-then
-    LFS="${SCRIPT_DIR}"/system
-fi
+export LFS=${LFS:-${SCRIPT_DIR}/system}
 
 if [ ! -d "${LFS}/${TOOLS}" ]
 then
@@ -25,18 +20,34 @@ fi
 sudo rm "/${TOOLS}"
 sudo ln -sv "${LFS}/${TOOLS}" /
 
-export LFS LC_ALL LFS_TGT PATH MAKEFLAGS SOURCES_DIR BUILD_DIR ARCH BUILD_SCRIPTS CUSTOM_PREFIX TOOLS
-
 for script in "${BUILD_SCRIPTS}/tools"/???-*
 do
+    script_name=`basename "${script}"`
+    doingmsg "###### Running: ${script_name} ######"
     sh "${script}"
     result=$?
     case "${result}" in
-        1)
-            exit "${result}"
+        0)
+            continue
         ;;
-        2)
+        *)
+            errmsg "###### ${script_name}: Error ${result} ######"
             exit "${result}"
         ;;
     esac
+    donemsg "###### ${script_name}: OK ######"
 done
+
+{
+    doingmsg "###### Finishing: ######"
+    strip --strip-debug "/${TOOLS}"/lib/*
+    /usr/bin/strip --strip-unneeded "/${TOOLS}"/{,s}bin/*
+    rm -rf "/${TOOLS}"/{,share}/{info,man,doc}
+    find "/${TOOLS}"/{lib,libexec} -name \*.la -delete
+    sudo chown -R root:root "${LFS}/${TOOLS}"
+    sudo rm "/${TOOLS}"
+    donemsg "###### Finishing: OK ######"
+} || {
+    errmsg "###### Finishing: Error ######"
+    exit
+}

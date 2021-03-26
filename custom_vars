@@ -1,11 +1,53 @@
+#!/bin/sh
+
 set +h
 umask 022
-CUSTOM_PREFIX=usr
-CUSTOM_SYSNAME=lfs
-TOOLS=tools
 
-LC_ALL=POSIX
-LFS_TGT="`uname -m`-${CUSTOM_SYSNAME}-linux-gnu"
-PATH=/${TOOLS}/bin:/bin:/${CUSTOM_PREFIX}/bin:/dummy/bin
+export CUSTOM_PREFIX=${CUSTOM_PREFIX:-usr}
+export CUSTOM_SYSNAME=${CUSTOM_SYSNAME:-lfs}
+export TOOLS=${TOOLS:-tools}
+export TOOLS_BUILD_SCRIPTS_DIRNAME=${TOOLS}
+export OS_BUILD_SCRIPTS_DIRNAME=${CUSTOM_SYSNAME}
+export LC_ALL=POSIX
+export LFS_TGT="`uname -m`-${CUSTOM_SYSNAME}-linux-gnu"
+export PATH=/${TOOLS}/bin:/bin:/${CUSTOM_PREFIX}/bin:/dummy/bin
+
 CPUS=$(echo `lscpu | grep 'CPU(s):'` | cut -d' ' -f2)
-MAKEFLAGS="-j${CPUS} -s --no-print-directory"
+
+export MAKEFLAGS="-j${CPUS} -s --no-print-directory"
+
+function mount_kernelsfs(){
+    local name=$(basename `realpath ${1}`)
+    local target=$(realpath ${1})
+    cat << EOF | sudo bash
+mount -v -t sysfs "${name}_sysfs" "${target}/sys"
+mount -v -t proc "${name}_procfs" "${target}/proc"
+mount -v -t devtmpfs "${name}_udevfs" "${target}/dev"
+mount -v -t devpts "${name}_devptsfs" "${target}/dev/pts" -o gid=5,mode=620
+mount -v -t tmpfs "${name}_tmpfs" "${target}/run"
+EOF
+}
+
+function umount_kernelsfs(){
+    local name=$(basename `realpath ${1}`)
+    local target=$(realpath ${1})
+    cat << EOF | sudo bash
+umount -v "${name}_sysfs"
+umount -v "${name}_procfs"
+umount -v "${name}_devptsfs"
+umount -v "${name}_udevfs"
+umount -v "${name}_tmpfs"
+EOF
+}
+
+function doingmsg(){
+    printf "\033[01;33m${1}\033[00m\n"
+}
+
+function donemsg(){
+    printf "\033[01;32m${1}\033[00m\n"
+}
+
+function errmsg(){
+    printf "\033[01;31m${1}\033[00m\n"
+}

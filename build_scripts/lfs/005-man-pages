@@ -1,0 +1,14 @@
+#!/bin/sh
+
+scripts_dir="${BUILD_SCRIPTS}/${OS_BUILD_SCRIPTS_DIRNAME}"
+tool_name=man-pages
+exit_on_builddir_exists=true
+
+source "${scripts_dir}/functions"
+
+{
+    make prefix="/${CUSTOM_PREFIX}" install
+} || {
+    cleanup
+    exit 2
+}

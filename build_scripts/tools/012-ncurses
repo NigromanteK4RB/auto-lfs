@@ -1,0 +1,27 @@
+#!/bin/sh
+
+scripts_dir="${BUILD_SCRIPTS}/${TOOLS_BUILD_SCRIPTS_DIRNAME}"
+tool_name=ncurses
+exit_on_builddir_exists=true
+
+source "${scripts_dir}/functions"
+
+{
+    sed -i s/mawk// configure &&
+    mkdir -v build &&
+    cd build &&
+    ../configure --prefix="/${TOOLS}" \
+        --with-shared \
+        --without-debug \
+        --without-ada \
+        --enable-widec \
+        --enable-overwrite &&
+    make &&
+    {
+        make install &&
+        ln -s libncursesw.so "/${TOOLS}/lib/libncurses.so"
+    }
+} || {
+    cleanup
+    exit 2
+}

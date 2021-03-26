@@ -1,0 +1,26 @@
+#!/bin/sh
+
+if [ ! -d /bin ]
+then
+    mkdir -pv /{bin,boot,etc/{opt,sysconfig},home,lib/firmware,mnt,opt}
+    mkdir -pv /{media/{floppy,cdrom},sbin,srv,var}
+    install -dv -m 0750 /root
+    install -dv -m 1777 /tmp /var/tmp
+    mkdir -pv "/${CUSTOM_PREFIX}"/{,local/}{bin,include,lib,sbin,src}
+    mkdir -pv "/${CUSTOM_PREFIX}"/{,local/}share/{color,dict,doc,info,locale,man}
+    mkdir -v  "/${CUSTOM_PREFIX}"/{,local/}share/{misc,terminfo,zoneinfo}
+    mkdir -v  "/${CUSTOM_PREFIX}"/libexec
+    mkdir -pv "/${CUSTOM_PREFIX}"/{,local/}share/man/man{1..8}
+    mkdir -v  "/${CUSTOM_PREFIX}"/lib/pkgconfig
+
+    case $(uname -m) in
+     x86_64) mkdir -v /lib64 ;;
+    esac
+
+    mkdir -v /var/{log,mail,spool}
+    ln -sv /run /var/run
+    ln -sv /run/lock /var/lock
+    mkdir -pv /var/{opt,cache,lib/{color,misc,locate},local}
+fi
+
+exit 0

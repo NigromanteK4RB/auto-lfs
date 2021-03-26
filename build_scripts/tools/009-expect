@@ -1,0 +1,22 @@
+#!/bin/sh
+
+scripts_dir="${BUILD_SCRIPTS}/${TOOLS_BUILD_SCRIPTS_DIRNAME}"
+tool_name=expect
+exit_on_builddir_exists=true
+
+source "${scripts_dir}/functions"
+
+{
+    cp -v configure{,.orig} &&
+    sed 's:/usr/local/bin:/bin:' configure.orig > configure &&
+    mkdir -v build &&
+    cd build &&
+    ../configure --prefix="/${TOOLS}" \
+        --with-tcl="/${TOOLS}/lib" \
+        --with-tclinclude="/${TOOLS}/include" &&
+    make &&
+    make SCRIPTS="" install
+} || {
+    cleanup
+    exit 2
+}

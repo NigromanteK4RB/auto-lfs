@@ -1,0 +1,106 @@
+#!/bin/sh
+
+
+SCRIPT_DIR=$(dirname "`realpath ${0}`")
+
+SOURCES_DIR="${SCRIPT_DIR}"/sources
+BUILD_SCRIPTS="${SCRIPT_DIR}"/build_scripts
+BUILD_DIR="${SCRIPT_DIR}"/build
+
+ARCH=$(uname -m)
+
+source "${SCRIPT_DIR}/custom_vars"
+
+if [ ! -d  "${LFS}" ]
+then
+    LFS="${SCRIPT_DIR}"/system
+fi
+
+if [ ! -d "${LFS}" ]
+then
+    errmsg "${LFS} Not Found"
+    exit 1
+fi
+
+if [ ! -d "${LFS}/${TOOLS}" ]
+then
+    errmsg "${LFS}/${TOOLS} Not Found"
+    exit 1
+fi
+
+cat << EOF | sudo bash
+if [ ! -d ${LFS}/dev ]
+then
+    mkdir -pv ${LFS}/{dev,proc,sys,run}
+    mknod -m 600 $LFS/dev/console c 5 1
+    mknod -m 666 $LFS/dev/null c 1 3
+    if [ -h $LFS/dev/shm ]; then
+      mkdir -pv $LFS/$(readlink $LFS/dev/shm)
+    fi
+    mkdir "${LFS}/build"
+fi
+if [ ! -d "${LFS}/sources" ]
+then
+    mkdir "${LFS}/sources"
+    mkdir "${LFS}/build_scripts"
+fi
+EOF
+
+function domounts(){
+    cat << DOMOUNTSEOF | sudo bash
+mount -o bind "${SOURCES_DIR}" "${LFS}/sources"
+mount -o bind "${BUILD_SCRIPTS}" "${LFS}/build_scripts"
+DOMOUNTSEOF
+    mount_kernelsfs "${LFS}"
+}
+
+function undomounts(){
+    cat << UNDOMOUNTSEOF | sudo bash
+umount -v "${LFS}/sources"
+umount -v "${LFS}/build_scripts"
+UNDOMOUNTSEOF
+    umount_kernelsfs "${LFS}"
+}
+
+function cleanup(){
+    undomounts
+    cat << EOF | sudo bash
+rm -rvf "${LFS}/sources"
+rm -rvf "${LFS}/build_scripts"
+EOF
+}
+
+domounts
+
+for script in "${BUILD_SCRIPTS}/os"/???-*
+do
+    script_name=`basename "${script}"`
+    doingmsg "###### Running: ${script_name} ######"
+    cat "${script}" | sudo chroot "$LFS" "/${TOOLS}/bin/env" -i \
+        BUILD_SCRIPTS="/build_scripts" \
+        BUILD_DIR="/build" \
+        SOURCES_DIR="/sources" \
+        CUSTOM_PREFIX="${CUSTOM_PREFIX}" \
+        CUSTOM_SYSNAME="${CUSTOM_SYSNAME}" \
+        TOOLS="${TOOLS}" \
+        MAKEFLAGS="${MAKEFLAGS}" \
+        HOME=/root \
+        TERM="$TERM" \
+        PS1="(${CUSTOM_SYSNAME} chroot) \u:\w\$ " \
+        PATH=/bin:/usr/bin:/sbin:/usr/sbin:"/${TOOLS}/bin" \
+        "/${TOOLS}/bin/bash" --login +h
+    result=$?
+    case "${result}" in
+        0)
+            donemsg "###### ${script_name}: OK ######"
+            continue
+        ;;
+        *)
+            errmsg "###### ${script_name}: Error ${result} ######"
+            cleanup
+            exit "${result}"
+        ;;
+    esac
+done
+
+cleanup

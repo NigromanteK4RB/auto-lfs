@@ -1,20 +1,17 @@
 #!/bin/sh
 
 scripts_dir="${BUILD_SCRIPTS}/${TOOLS_BUILD_SCRIPTS_DIRNAME}"
-tool_name=glibc
+tool_name=m4
 exit_on_builddir_exists=true
 
 source "${scripts_dir}/functions"
 
 {
+    sed -i 's/IO_ftrylockfile/IO_EOF_SEEN/' lib/*.c &&
+    echo "#define _IO_IN_BACKUP 0x100" >> lib/stdio-impl.h &&
     mkdir -v build &&
     cd build &&
-    ../configure \
-        --prefix="/${TOOLS}" \
-        --host=$LFS_TGT \
-        --build=$(../scripts/config.guess) \
-        --enable-kernel=3.2 \
-        --with-headers="/${TOOLS}/include" &&
+    ../configure --prefix="/${TOOLS}" &&
     make &&
     make install
 } || {

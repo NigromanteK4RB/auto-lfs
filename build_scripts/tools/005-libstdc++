@@ -1,6 +1,6 @@
 #!/bin/sh
 
-scripts_dir="${BUILD_SCRIPTS}/tools"
+scripts_dir="${BUILD_SCRIPTS}/${TOOLS_BUILD_SCRIPTS_DIRNAME}"
 tool_name=gcc
 exit_on_builddir_exists=false
 

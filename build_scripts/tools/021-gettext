@@ -1,15 +1,15 @@
 #!/bin/sh
 
 scripts_dir="${BUILD_SCRIPTS}/${TOOLS_BUILD_SCRIPTS_DIRNAME}"
-tool_name=linux
+tool_name=gettext
 exit_on_builddir_exists=true
 
 source "${scripts_dir}/functions"
 
 {
-    make mrproper &&
-    make headers &&
-    cp -rv usr/include/* "/${TOOLS}/include"
+    ./configure --disable-shared &&
+    make &&
+    cp -v gettext-tools/src/{msgfmt,msgmerge,xgettext} "/${TOOLS}/bin"
 } || {
     cleanup
     exit 2

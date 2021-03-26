@@ -1,15 +1,17 @@
 #!/bin/sh
 
 scripts_dir="${BUILD_SCRIPTS}/${TOOLS_BUILD_SCRIPTS_DIRNAME}"
-tool_name=linux
+tool_name=grep
 exit_on_builddir_exists=true
 
 source "${scripts_dir}/functions"
 
 {
-    make mrproper &&
-    make headers &&
-    cp -rv usr/include/* "/${TOOLS}/include"
+    mkdir -v build &&
+    cd build &&
+    ../configure --prefix="/${TOOLS}" &&
+    make &&
+    make install
 } || {
     cleanup
     exit 2

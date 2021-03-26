@@ -1,12 +1,16 @@
 #!/bin/sh
 
-scripts_dir="${BUILD_SCRIPTS}/tools"
+scripts_dir="${BUILD_SCRIPTS}/${TOOLS_BUILD_SCRIPTS_DIRNAME}"
 tool_name=binutils
 exit_on_builddir_exists=false
 
 source "${scripts_dir}/functions"
 
 {
+    if [ -d build-step2 ]
+    then
+        exit 0
+    fi
     mkdir build-step2 &&
     cd build-step2 &&
     CC=$LFS_TGT-gcc \
@@ -30,6 +34,3 @@ source "${scripts_dir}/functions"
     rm -rvf build-step2
     exit 2
 }
-
-
-

@@ -77,6 +77,7 @@ do
     script_name=`basename "${script}"`
     doingmsg "###### Running: ${script_name} ######"
     cat "${script}" | sudo chroot "$LFS" "/${TOOLS}/bin/env" -i \
+        OS_BUILD_SCRIPTS_DIRNAME="${OS_BUILD_SCRIPTS_DIRNAME}" \
         BUILD_SCRIPTS="/build_scripts" \
         BUILD_DIR="/build" \
         SOURCES_DIR="/sources" \
